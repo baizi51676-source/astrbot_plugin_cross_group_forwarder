@@ -28,16 +28,6 @@
 本插件**不维护会话注册表**：群名 → 群号的映射由 LLM 的可靠记忆直接持有。
 LLM 可先调用 `get_group_list` 获取机器人所有群的群号与群名，建立"群名对应哪个群号"的记忆，之后直接按群号调用发送工具，无需任何注册操作。
 
-## 定时发送
-
-定时发送需求**不需要本插件实现**，直接使用 **AstrBot 自带的 `future_task` 内置工具**：
-
-- `action=create` + `run_at`（一次性任务，ISO8601 时刻）+ `run_once`，或 `cron_expression`（周期任务）
-- `note` 中写明"到点后调用 send_message_to_group 向群 XXXXX 发送消息 xxx"
-- 任务触发时 AstrBot 会唤醒未来的 Agent 执行 `note` 中的指令，届时调用本插件的工具即可
-
-> 需要先开启 AstrBot 的主动能力配置：`provider_settings.proactive_capability.add_cron_tools = true`
-
 ## 媒体地址说明
 
 - 图片/语音/文件均支持三种来源：
@@ -47,18 +37,15 @@ LLM 可先调用 `get_group_list` 获取机器人所有群的群号与群名，�
 - 可选 `caption` 参数可附带文字说明（文字在媒体前）
 - 底层为 OneBot v11 消息段（`image` / `record` / `file` / `forward`），NapCat 原生支持
 
-## 安全配置
+## 安全配置（WebUI 可视化）
 
-在 `main.py` 的 `__init__` 中可配置：
+所有配置项均可直接在 **AstrBot WebUI → 插件管理 → 跨群消息转发 → 配置** 中修改，无需编辑代码：
 
-```python
-# 目标群白名单：仅允许向这些群发送消息；为空表示不限制
-self.allowed_groups = []  # 例：["123456789", "987654321"]
-
-# 权限：默认仅管理员
-self.admin_only = True
-self.allowed_user_ids = set()  # admin_only=False 时生效
-```
+| 配置项 | 类型 | 默认值 | 说明 |
+|---|---|---|---|
+| `admin_only` | bool | `true` | 仅 AstrBot 管理员可用 |
+| `allowed_user_ids` | list | `[]` | 允许使用的用户 QQ 号（`admin_only=false` 时生效） |
+| `allowed_groups` | list | `[]` | 目标群白名单：仅允许向这些群发送消息，留空不限制 |
 
 - **目标群白名单**：防止 LLM 被 prompt 注入诱导向任意群发送垃圾消息
 - **审计日志**：所有发送操作（时间/工具/目标/内容摘要/成败）记录在

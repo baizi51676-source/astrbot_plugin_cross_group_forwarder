@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from astrbot.api import logger
+from astrbot.api import logger, AstrBotConfig
 from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star
 
@@ -24,22 +24,25 @@ class CrossGroupForwarder(Star):
     - 内置目标群白名单与操作审计日志，防止滥用。
     """
 
-    def __init__(self, context: Context):
+    def __init__(self, context: Context, config: AstrBotConfig):
         super().__init__(context)
+        self.config = config
         # 持久化数据存到 AstrBot 的 data 目录（官方规范：防止更新插件时数据被覆盖）
         self.data_dir = Path("data/plugins/cross_group_forwarder")
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.audit_file = self.data_dir / "audit.log"
 
-        # 权限配置：
-        # admin_only = True  -> 仅管理员可以使用（推荐）
-        # admin_only = False -> 允许名单中的用户 ID 可以使用
-        self.admin_only = True
-        self.allowed_user_ids: set[str] = set()
-
-        # 目标群白名单：仅允许向这些群发送消息；为空表示不限制。
-        # 例：self.allowed_groups = ["123456789", "987654321"]
-        self.allowed_groups: list[str] = []
+        # 以下配置项均可通过 AstrBot WebUI 插件管理页配置（见 _conf_schema.json）：
+        # - admin_only: 仅管理员可用（默认 True）
+        # - allowed_user_ids: 允许使用的用户 QQ 号列表（admin_only=False 时生效）
+        # - allowed_groups: 目标群白名单，留空表示不限制
+        self.admin_only = bool(config.get("admin_only", True))
+        self.allowed_user_ids: set[str] = {
+            str(x) for x in config.get("allowed_user_ids", [])
+        }
+        self.allowed_groups: list[str] = [
+            str(x) for x in config.get("allowed_groups", [])
+        ]
 
     # ---------------------------------------------------------------
     # 内部工具方法
