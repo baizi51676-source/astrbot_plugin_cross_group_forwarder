@@ -1,7 +1,7 @@
 name: astrbot_plugin_cross_group_forwarder
 desc: 给 LLM 提供跨群发送消息的工具，使其可以在一个聊天中向其他 QQ 群（按群号）发送文字/图片
 author: baizi51676-source
-version: 1.2.0
+version: 1.2.1
 repo: https://github.com/baizi51676-source/astrbot_plugin_cross_group_forwarder
 display_name: 跨群消息转发
 short_desc: 让 LLM 可以给其他 QQ 群发送消息
